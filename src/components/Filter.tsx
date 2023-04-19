@@ -1,92 +1,105 @@
-import React, {ChangeEvent, useState} from 'react';
-import {useGetCategoriesQuery} from "../redux/apiProducts";
-import {useDispatch} from "react-redux";
-import {filterByCategory} from "../redux/productSlice";
+import React, {ChangeEvent} from 'react';
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../redux/store";
+import {filterByCategory, filterByPrice, filterByRating} from "../redux/productSlice";
 
+
+const inputCategories = [
+    {id: "men's clothing", title: "men's clothing"},
+    {id: "women's clothing", title: "women's clothing"},
+    {id: "jewelery", title: "jewelery"},
+    {id: "electronics", title: "electronics"}
+]
+
+const inputRating = [
+    {id: "high", title: "high"},
+    {id: "low", title: "low"}
+]
 
 const Filter = () => {
 
-    const [checkedCategories, setCheckedCategories] = useState<string[]>([]);
+    const dispatch = useDispatch();
+    const {selectedCategory, sortRating, sortPrice} = useSelector((state: RootState) => state.products)
 
-    const {data: categories} = useGetCategoriesQuery(null)
-
-    const dispatch = useDispatch()
-
-    const handleChangeCategory = (event:ChangeEvent<HTMLInputElement>) => {
-        const category = event.target.value
-        const isChecked = event.target.checked
-        let newCheckedCategories = [...checkedCategories]
-
-        if (isChecked) {
-            newCheckedCategories.push(category)
+    const handleChangeFilter = (event: ChangeEvent<HTMLInputElement>, filterType: string) => {
+        if (event.target.checked) {
+            switch (filterType) {
+                case 'category':
+                    dispatch(filterByCategory(event.target.value));
+                    break;
+                case 'rating':
+                    dispatch(filterByRating(event.target.value));
+                    break;
+                default:
+                    break;
+            }
         } else {
-            newCheckedCategories = newCheckedCategories.filter((c) => c !== category)
+            switch (filterType) {
+                case 'category':
+                    dispatch(filterByCategory(''));
+                    break;
+                case 'rating':
+                    dispatch(filterByRating(''));
+                    break;
+                default:
+                    break;
+            }
         }
+    };
 
-        setCheckedCategories(newCheckedCategories)
-
-        if (newCheckedCategories.length > 0) {
-            dispatch(filterByCategory(newCheckedCategories.join(',')))
-        } else {
-            dispatch(filterByCategory(''))
-        }
+    const handleChangePrice = (event: ChangeEvent<HTMLInputElement>, index: number) => {
+        const newSortPrice = [...sortPrice];
+        newSortPrice[index] = parseInt(event.target.value) || 0;
+        dispatch(filterByPrice(newSortPrice));
     }
+
+
     return (
         <div className='m-10 sticky'>
             <div className='@apply block-filter'>
                 <h3 className='@apply title-filter'>Category</h3>
-                <div className='flex pt-2'>
-                    <input
-                        className='@apply input-filter'
-                        id='all'
-                        type="checkbox"
-                        value=""
-                        onChange={(event) => handleChangeCategory(event)}
-                        checked={checkedCategories.length === 0}
-                    />
-                    <label htmlFor='all' className='@apply label-filter'>All</label>
-                </div>
-                {categories?.map((category) =>
-                    <div key={category} className='flex pt-2'>
+                {inputCategories?.map((category) =>
+                    <div key={category.id} className='flex pt-2'>
                         <input
                             className='@apply input-filter'
-                            id={category}
+                            id={category.id}
                             type="checkbox"
-                            value={category}
-                            onChange={(event) => handleChangeCategory(event)}
-                            checked={checkedCategories.includes(category)}
+                            value={category.title}
+                            checked={category.title === selectedCategory}
+                            onChange={event => handleChangeFilter(event, 'category')}
+
                         />
-                        <label htmlFor={category} className='@apply label-filter'>{category}</label>
+                        <label htmlFor={category.id} className='@apply label-filter'>{category.title}</label>
                     </div>
                 )}
             </div>
             <div className='@apply block-filter'>
                 <h3 className='@apply title-filter mt-5'>Price</h3>
-                <div className='flex justify-around'>
-                    <input type="text"
-                           className='@apply min-max-input'
-                           placeholder='low'/>
-                    -
-                    <input type="text"
-                           className='@apply min-max-input'
-                           placeholder='high'
-                    />
-                </div>
+                    <div className='flex justify-around'>
+                        <input type="text"
+                               className='@apply min-max-input'
+                               onChange={event => handleChangePrice(event, 0)}
+                               placeholder='low'/>
+                        -
+                        <input type="text"
+                               className='@apply min-max-input'
+                               onChange={event => handleChangePrice(event, 1)}
+                               placeholder='high'/>
+                    </div>
             </div>
             <div className='@apply block-filter'>
                 <h3 className='@apply title-filter mt-5'>Rating</h3>
-                <div>
-                    <input type="checkbox"
-                           id='high'
-                           className='@apply input-filter'/>
-                    <label htmlFor="high" className='@apply label-filter'>high</label>
-                </div>
-                <div>
-                    <input type="checkbox"
-                           id='low'
-                           className='@apply input-filter'/>
-                    <label htmlFor="low" className='@apply label-filter'>low</label>
-                </div>
+                {inputRating.map(rating =>
+                    <div key={rating.id}>
+                        <input type="checkbox"
+                               id={rating.id}
+                               value={rating.title}
+                               checked={sortRating === rating.title}
+                               onChange={event => handleChangeFilter(event, 'rating')}
+                               className='@apply input-filter'/>
+                        <label htmlFor={rating.id} className='@apply label-filter'>{rating.title}</label>
+                    </div>
+                )}
             </div>
         </div>
     );

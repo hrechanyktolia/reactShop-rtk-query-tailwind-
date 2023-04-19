@@ -5,15 +5,17 @@ import {ICartProduct} from "./types";
 interface IProductState {
     cart: ICartProduct[];
     selectedCategory: string;
-    sortBy: string;
-
+    sortRating: string;
+    sortPrice: number[];
+    search: string;
 }
 
 const initialState: IProductState = {
     cart: [],
     selectedCategory: '',
-    sortBy: 'rating-desc',
-
+    sortRating: '',
+    sortPrice: [0, Infinity],
+    search: ''
 }
 
 export const productsSlice = createSlice({
@@ -44,16 +46,22 @@ export const productsSlice = createSlice({
                 findItem.count--
             }
         },
-        filterByCategory:(state:IProductState, action:PayloadAction<string>) => {
-            state.selectedCategory = action.payload
+        filterByCategory: (state: IProductState, action: PayloadAction<string>) => {
+            state.selectedCategory = action.payload;
         },
-        filterByRating:(state:IProductState, action:PayloadAction<string>) => {
-            state.sortBy = action.payload
+        filterByRating: (state:IProductState, action:PayloadAction<string>) => {
+          state.sortRating = action.payload
+        },
+        filterByPrice: (state:IProductState, action:PayloadAction<number[]>) => {
+            state.sortPrice = action.payload
+        },
+        setSearch: (state:IProductState, action:PayloadAction<string>) => {
+            state.search = action.payload
         }
     },
 })
 
-export const {filterByCategory, filterByRating, addProduct, removeProduct, clearCart, increment, decrement} = productsSlice.actions
+export const {filterByCategory, filterByRating, filterByPrice, setSearch, addProduct, removeProduct, clearCart, increment, decrement} = productsSlice.actions
 export default productsSlice.reducer
 
 

@@ -17,10 +17,43 @@ function App() {
 
     const {data: products, isLoading, error} = useGetAllProductsQuery(null)
 
-    const selectedCategory = useSelector((state: RootState) => state.products.selectedCategory);
+    const {selectedCategory, sortRating, sortPrice, search} = useSelector((state: RootState) => state.products);
 
+    // const filterByCategory = selectedCategory ? products?.filter(product => product.category === selectedCategory)
+    //     : products
+    //
+    // const filterByRating = sortRating ? products?.filter(product => sortRating === 'high' ? product.rating.rate >= 3 :
+    //     product.rating.rate <= 3) : products
+    //
+    // const filterByPrice = sortPrice ? products?.filter(product => product.price >= sortPrice[0] && product.price <= sortPrice[1])
+    //     : products
 
-    const filteredProducts = selectedCategory ? products?.filter(product => product.category === selectedCategory) : products
+    const filteredProducts = products?.filter((product) => {
+        if (selectedCategory && product.category !== selectedCategory) {
+            return false;
+        }
+
+        if (
+            sortRating &&
+            ((sortRating === "high" && product.rating.rate < 3) ||
+                (sortRating === "low" && product.rating.rate >= 3))
+        ) {
+            return false;
+        }
+
+        if (
+            sortPrice &&
+            (product.price < sortPrice[0] || product.price > sortPrice[1])
+        ) {
+            return false;
+        }
+
+        if (search && !product.title.toLowerCase().includes(search.toLowerCase())) {
+            return false;
+        }
+        return true;
+    });
+
 
     if (error) {
         return <div>Oh no, there was an error</div>;
